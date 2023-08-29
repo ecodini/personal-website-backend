@@ -1,0 +1,21 @@
+{
+    "name": "holamanola45/www",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "Holamanola45\\Www\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "ecodini"
+        }
+    ],
+    "require": {
+        "monolog/monolog": "^3.4",
+        "vlucas/phpdotenv": "^5.5"
+    },
+    "scripts": {
+        "start-dev": "php -S localhost:8080"
+    }
+}
