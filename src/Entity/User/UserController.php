@@ -33,7 +33,7 @@ class UserController {
         $user = $this->userService->findByUsername($req->params[0], ['id', 'username', 'created_at']);
 
         return array(
-            'user' => $user
+            'user' => (array) $user
         );
     }
 
