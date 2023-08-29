@@ -2,6 +2,7 @@
 
 use Holamanola45\Www\Lib\Config;
 use Monolog\ErrorHandler;
+use Monolog\Handler\DeduplicationHandler;
 use Monolog\Handler\StreamHandler;
 
 class Logger extends \Monolog\Logger
@@ -20,7 +21,8 @@ class Logger extends \Monolog\Logger
             ];
         }
 
-        $this->pushHandler(new StreamHandler($config['logFile'], $config['logLevel']));
+        $streamHandler = new StreamHandler($config['logFile']);
+        $this->pushHandler(new DeduplicationHandler($streamHandler));
     }
 
     public static function getInstance($key = "app", $config = null)
@@ -38,16 +40,9 @@ class Logger extends \Monolog\Logger
         $LOG_PATH = Config::get('LOG_PATH', __DIR__ . '/../../logs');
 
         self::$loggers['error'] = new Logger('errors');
-        self::$loggers['error']->pushHandler(new StreamHandler("{$LOG_PATH}/errors.log"));
         ErrorHandler::register(self::$loggers['error']);
 
-        $data = [
-            $_SERVER,
-            $_REQUEST,
-            trim(file_get_contents("php://input"))
-        ];
         self::$loggers['request'] = new Logger('request');
-        self::$loggers['request']->pushHandler(new StreamHandler("{$LOG_PATH}/request.log"));
-        self::$loggers['request']->info("REQUEST", $data);
+        self::$loggers['request']->info("REQUEST - " . $_SERVER['REQUEST_METHOD'] . ' ' . $_SERVER['REQUEST_URI'] . ' - ' . $_SERVER['HTTP_X_FORWARDED_FOR'] . ' - STATUS: ' . http_response_code());
     }
 }

@@ -17,6 +17,8 @@ class Response
         http_response_code($this->status);
         header('Content-Type: application/json');
         echo json_encode($data);
+
+        $this->closeConnection();
     }
 
     public function toXML($data = []) {
@@ -35,6 +37,8 @@ class Response
 
         $xml = XMLHelper::arrayToXML($data);
         echo $xml->asXML();
+
+        $this->closeConnection();
     }
 
     public function closeConnection() {
