@@ -158,15 +158,17 @@ class UserController {
                 throw new BadRequestException('The user already exists!');
             }
 
-            $token = md5(uniqid(time()));;
+            $token = md5(uniqid(time()));
+            $current_date = Timezone::getCurrentDateString();
 
             $this->userService->createUser(array(
                 'username' => $username,
                 'password' => PasswordCrypt::encrypt($password),
-                'created_at' => Timezone::getCurrentDateString(),
+                'created_at' => $current_date,
                 'created_by_ip' => $ip,
                 'email' => $clean,
-                'token' => $token
+                'token' => $token,
+                'mail_sent_at' => $current_date
             ));
 
             $this->userService->commit();
@@ -176,7 +178,6 @@ class UserController {
             ));
 
             $mailer = new Mailer();
-
             $mailer->sendActivationEmail($clean, 'https://api.holamanola45.com.ar/api/user/activate/' . $token);
 
             return;
@@ -215,6 +216,63 @@ class UserController {
             ));
 
             $this->userService->commit();
+        } catch (Exception $e) {
+            $this->userService->rollback();
+            throw $e;
+        }
+    }
+
+    public function retrySendActivateEmail(Request $req, Response $res) {
+        try {
+            $this->userService->beginTransaction();
+
+            $user = $this->userService->findOne(array(
+                'attributes' => ['id', 'email', 'token', 'activate_at', 'mail_sent_at'],
+                'where' => array(
+                    'id' => $req->params[0]
+                )
+            ));
+
+            if (!isset($user['id'])) {
+                throw new BadRequestException('User does not exist.');
+            }
+
+            if (isset($user['activate_at'])) {
+                throw new BadRequestException('User already active.');
+            }
+
+            $date = strtotime('now');
+            $og_sent_date = strtotime($user['mail_sent_at']);
+
+            $interval = $date - $og_sent_date;
+
+            if ($interval < 3600) {
+                throw new BadRequestException('Wait at least ' . round((3600 - $interval) / 60) . ' minutes before retrying.');
+            }
+
+            $token = md5(uniqid(time()));
+
+            $this->userService->update(array(
+                'set' => array(
+                    'mail_sent_at' => Timezone::getCurrentDateString(),
+                    'token' => $token
+                ),
+                'where' => array(
+                    'id' => $user['id']
+                )
+            ));
+
+            $this->userService->commit();
+
+            $res->toXML(array(
+                'message' => 'Mail is being resent. Please wait a few minutes.'
+            ));
+
+            $mailer = new Mailer();
+            $mailer->sendActivationEmail($user['email'], 'https://api.holamanola45.com.ar/api/user/activate/' . $token);
+
+            return;
+
         } catch (Exception $e) {
             $this->userService->rollback();
             throw $e;

@@ -11,8 +11,9 @@ class UserRoutes {
         $router->add(self::$prefix. '/logout', 'post', UserController::class, 'logout', true);
         $router->add(self::$prefix. '/whoami', 'get', UserController::class, 'whoami', true);
 
-        $router->add(self::$prefix. '/activate/(^[A-Za-z0-9_]+$)', 'post', UserController::class, 'activateUser');
+        $router->add(self::$prefix. '/activate/([A-Za-z0-9_]+$)', 'post', UserController::class, 'activateUser');
         $router->add(self::$prefix. '/create', 'post', UserController::class, 'createUser');
+        $router->add(self::$prefix. '/([0-9]*)/resend', 'post', UserController::class, 'retrySendActivateEmail');
 
         // get users
         $router->add(self::$prefix. '/name/([^/]*$)', 'get', UserController::class, 'getUser', true);

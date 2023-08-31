@@ -9,7 +9,8 @@ class Mailer {
     public PHPMailer $phpMailer;
 
     function __construct() {
-        $this->phpMailer = new PHPMailer(true);
+        // ignore exceptions (i do NOT care)
+        $this->phpMailer = new PHPMailer(false);
 
         $this->phpMailer->isSMTP();
         $this->phpMailer->Host       = $_ENV['EMAIL_HOST_SMTP'];
