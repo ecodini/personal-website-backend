@@ -23,5 +23,9 @@ class User {
 
     public $activate_at;
 
+    public string $email;
+
+    public string $token;
+
     public $extra_properties;
 }
