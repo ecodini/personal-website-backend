@@ -19,9 +19,9 @@ class User {
 
     public string $created_by_ip;
 
-    public string $last_login_ip;
+    public $last_login_ip;
 
-    public string $activated_at;
+    public $activate_at;
 
-    public array $extra_properties;
+    public $extra_properties;
 }

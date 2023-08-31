@@ -24,8 +24,8 @@ class UserService extends DbService {
 
     public function createUser(array $user_data) {
         $this->query('
-            INSERT INTO user (username, password, created_at, created_by_ip)
-            VALUES (:username, :password, :created_at, :created_by_ip)
+            INSERT INTO user (username, password, created_at, created_by_ip, email, token)
+            VALUES (:username, :password, :created_at, :created_by_ip, :email, :token)
         ', $user_data);
     }
 }

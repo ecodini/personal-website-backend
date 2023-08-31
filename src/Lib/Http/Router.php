@@ -51,14 +51,16 @@ class Router
                 SessionManager::verifyLoggedIn();
             }
 
-            $explode_params = explode('&', $_SERVER['QUERY_STRING']);
-
             $query_params = array();
 
-            foreach ($explode_params as $val) {
-                $value = explode('=', $val);
+            if ($_SERVER['QUERY_STRING']) {
+                $explode_params = explode('&', $_SERVER['QUERY_STRING']);
 
-                $query_params[$value[0]] = $value[1];
+                foreach ($explode_params as $val) {
+                    $value = explode('=', $val);
+
+                    $query_params[$value[0]] = $value[1];
+                }
             }
             
             array_shift($matches);

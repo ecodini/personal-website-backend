@@ -4,9 +4,11 @@ use Exception;
 use Holamanola45\Www\Lib\Auth\PasswordCrypt;
 use Holamanola45\Www\Lib\Auth\SessionManager;
 use Holamanola45\Www\Lib\Error\BadRequestException;
+use Holamanola45\Www\Lib\Error\ForbiddenException;
 use Holamanola45\Www\Lib\Error\UnauthorizedException;
 use Holamanola45\Www\Lib\Http\Request;
 use Holamanola45\Www\Lib\Http\Response;
+use Holamanola45\Www\Lib\Utils\Mailer;
 use Holamanola45\Www\Lib\Utils\Timezone;
 
 class UserController {
@@ -60,7 +62,7 @@ class UserController {
         try {
             $this->userService->beginTransaction();
 
-            $user = $this->userService->findByUsername($username, ['id', 'username', 'password']);
+            $user = $this->userService->findByUsername($username, ['id', 'username', 'password', 'activate_at']);
 
             if (!isset($user->id)) {
                 throw new BadRequestException("The user doesn't exist!");
@@ -70,6 +72,10 @@ class UserController {
 
             if (!$passwordValid) {
                 throw new UnauthorizedException('The username or password provided are incorrect.');
+            }
+
+            if(!isset($user->activate_at)) {
+                throw new ForbiddenException('The user has not been activated yet! Please check your email.');
             }
 
             SessionManager::setUser($user->id, $user->username);
@@ -114,9 +120,10 @@ class UserController {
 
         $username = $body->username;
         $password = $body->password;
+        $email = $body->email;
 
-        if (!count($username) || !count($password)) {
-            throw new BadRequestException('Username and password are required.');
+        if (!count($username) || !count($password) || !count($email)) {
+            throw new BadRequestException('Username, password, and email are required.');
         }
 
         if (ctype_alnum($username)) {
@@ -127,6 +134,12 @@ class UserController {
             throw new BadRequestException("The username can't exceed 32 characters in length!");
         }
 
+        $clean = filter_var($email, FILTER_SANITIZE_EMAIL);
+
+        if ($clean != $email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new BadRequestException('The email format is incorrect!');
+        }
+
         $ip = $req->getClientIp();
 
         try {
@@ -134,20 +147,74 @@ class UserController {
 
             $user = $this->userService->findByUsername($username, ['id', 'username']);
 
-            if (isset($user->id)) {
+            $user_email = $this->userService->findOne(array(
+                'attributes' => ['id', 'email'],
+                'where' => array(
+                    'email' => $clean
+                )
+            ));
+
+            if (isset($user->id) || isset($user_email['id'])) {
                 throw new BadRequestException('The user already exists!');
             }
+
+            $token = md5(uniqid(time()));;
 
             $this->userService->createUser(array(
                 'username' => $username,
                 'password' => PasswordCrypt::encrypt($password),
                 'created_at' => Timezone::getCurrentDateString(),
-                'created_by_ip' => $ip
+                'created_by_ip' => $ip,
+                'email' => $clean,
+                'token' => $token
             ));
 
             $this->userService->commit();
 
+            $res->toXML(array(
+                'message' => 'Your account has been created. Please check your email for an activation link.'
+            ));
+
+            $mailer = new Mailer();
+
+            $mailer->sendActivationEmail($clean, 'https://api.holamanola45.com.ar/api/user/activate/' . $token);
+
             return;
+        } catch (Exception $e) {
+            $this->userService->rollback();
+            throw $e;
+        }
+    }
+
+    public function activateUser(Request $req, Response $res) {
+        try {
+            $this->userService->beginTransaction();
+
+            $user = $this->userService->findOne(array(
+                'attributes' => ['id', 'username', 'token', 'activate_at'],
+                'where' => array(
+                    'token' => $req->params[0]
+                )
+            ));
+
+            if (!isset($user['token'])) {
+                throw new BadRequestException('Invalid token.');
+            }
+
+            if (isset($user['activate_at'])) {
+                throw new BadRequestException('User already activated!');
+            }
+
+            $this->userService->update(array(
+                'set' => array(
+                    'activate_at' => Timezone::getCurrentDateString()
+                ),
+                'where' => array(
+                    'id' => $user['id']
+                )
+            ));
+
+            $this->userService->commit();
         } catch (Exception $e) {
             $this->userService->rollback();
             throw $e;
