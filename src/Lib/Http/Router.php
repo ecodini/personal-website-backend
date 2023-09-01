@@ -53,13 +53,11 @@ class Router
 
             $query_params = array();
 
-            if ($_SERVER['QUERY_STRING']) {
-                $explode_params = explode('&', $_SERVER['QUERY_STRING']);
+            if (isset($_SERVER['QUERY_STRING'])) {
+                parse_str($_SERVER['QUERY_STRING'], $query_params);
 
-                foreach ($explode_params as $val) {
-                    $value = explode('=', $val);
-
-                    $query_params[$value[0]] = $value[1];
+                if (isset($query_params['qs'])) {
+                    parse_str($query_params['qs'], $query_params['qs']);
                 }
             }
             

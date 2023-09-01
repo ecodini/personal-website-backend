@@ -20,13 +20,33 @@ class UserController {
     }
 
     public function getAllUsers(Request $req, Response $res) {
-        $allUsers = $this->userService->findAll(array(
+        $limit = $req->query_params['count'] ? $req->query_params['count'] : $_ENV['DEFAULT_ITEMS_PER_PAGE'];
+        $page = $req->query_params['page'] ? $req->query_params['page'] : 1;
+
+        if ($limit < 1 || $page < 1) {
+            throw new BadRequestException('Invalid arguments.');
+        }
+
+        $count = $this->userService->getTotalRows();
+
+        $query_options = array(
             'attributes' => array('id', 'username', 'created_at'),
-            'limit' => 10,
-            'offset' => 0
-        ));
+            'limit' => $limit,
+            'offset' => $limit * ($page - 1)
+        );
+
+        if (isset($req->query_params['qs']) && count($req->query_params['qs']) > 0) {
+            $query_options['where'] = $req->query_params['qs'];
+        }
+
+        if (isset($req->query_params['order']) && count($req->query_params['order']) > 0) {
+            $query_options['order'] = $req->query_params['order'];
+        }
+
+        $allUsers = $this->userService->findAll($query_options);
 
         return array(
+            'count' => $count,
             'users' => $allUsers
         );
     }

@@ -18,6 +18,6 @@ class UserRoutes {
         // get users
         $router->add(self::$prefix. '/name/([^/]*$)', 'get', UserController::class, 'getUser', true);
         $router->add(self::$prefix. '/([0-9]*)', 'get', UserController::class, 'getById', true);
-        $router->add(self::$prefix. '', 'get', UserController::class, 'getAllUsers', true);
+        $router->add(self::$prefix, 'get', UserController::class, 'getAllUsers', true);
     }
 }

@@ -91,4 +91,22 @@ class QueryGenerator {
 
         return $set;
     }
+
+    public static function generateOrderClause(array $query_params) {
+        $order = NULL;
+
+        if (isset($query_params['order'])) {
+            if ($query_params['order'][1] != 'ASC' && $query_params['order'][1] != 'DESC') {
+                return $order;
+            }
+
+            if (!preg_match('/^[a-z]+$/', $query_params['order'][0])) {
+                return $order;
+            }
+
+            $order = 'ORDER BY ' . $query_params['order'][0] . ' ' . $query_params['order'][1];
+        }
+
+        return $order;
+    }
 }

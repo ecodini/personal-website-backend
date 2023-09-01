@@ -63,6 +63,7 @@ abstract class DbService {
 
         $where = QueryGenerator::generateWhere($query_params);
         $joins = QueryGenerator::generateJoins($query_params, $this->table_name);
+        $order = QueryGenerator::generateOrderClause($query_params);
 
         $rows = 'SELECT ' . $attributes .' FROM ' . $this->table_name . ' ' . $this->table_name . ' ' . $joins['join_statement'];
 
@@ -83,6 +84,10 @@ abstract class DbService {
         if (isset($params)) {
             if (isset($where)) {
                 $rows = $rows . ' ' . $where . ' ';
+            }
+
+            if (isset($order)) {
+                $rows = $rows . ' ' . $order . ' ';
             }
 
             return $this->query($rows . $limit_offset, $params);
