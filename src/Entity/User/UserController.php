@@ -55,7 +55,7 @@ class UserController {
         $user = $this->userService->findByUsername($req->params[0], ['id', 'username', 'created_at']);
 
         return array(
-            'user' => (array) $user
+            'user' => $user
         );
     }
 
@@ -165,16 +165,11 @@ class UserController {
         try {
             $this->userService->beginTransaction();
 
-            $user = $this->userService->findByUsername($username, ['id', 'username']);
-
-            $user_email = $this->userService->findOne(array(
-                'attributes' => ['id', 'email'],
-                'where' => array(
-                    'email' => $clean
-                )
+            $user = $this->userService->findByUsernameOrEmail($username, $email, array(
+                'attributes' => ['id', 'username', 'email']
             ));
 
-            if (isset($user->id) || isset($user_email['id'])) {
+            if (isset($user->id)) {
                 throw new BadRequestException('The user already exists!');
             }
 
@@ -218,11 +213,11 @@ class UserController {
                 )
             ));
 
-            if (!isset($user['token'])) {
+            if (!isset($user->token)) {
                 throw new BadRequestException('Invalid token.');
             }
 
-            if (isset($user['activate_at'])) {
+            if (isset($user->activate_at)) {
                 throw new BadRequestException('User already activated!');
             }
 
@@ -231,7 +226,7 @@ class UserController {
                     'activate_at' => Timezone::getCurrentDateString()
                 ),
                 'where' => array(
-                    'id' => $user['id']
+                    'id' => $user->id
                 )
             ));
 
@@ -253,16 +248,16 @@ class UserController {
                 )
             ));
 
-            if (!isset($user['id'])) {
+            if (!isset($user->id)) {
                 throw new BadRequestException('User does not exist.');
             }
 
-            if (isset($user['activate_at'])) {
+            if (isset($user->activate_at)) {
                 throw new BadRequestException('User already active.');
             }
 
             $date = strtotime('now');
-            $og_sent_date = strtotime($user['mail_sent_at']);
+            $og_sent_date = strtotime($user->mail_sent_at);
 
             $interval = $date - $og_sent_date;
 
@@ -278,7 +273,7 @@ class UserController {
                     'token' => $token
                 ),
                 'where' => array(
-                    'id' => $user['id']
+                    'id' => $user->id
                 )
             ));
 
@@ -289,7 +284,7 @@ class UserController {
             ));
 
             $mailer = new Mailer();
-            $mailer->sendActivationEmail($user['email'], 'https://api.holamanola45.com.ar/api/user/activate/' . $token);
+            $mailer->sendActivationEmail($user->email, 'https://api.holamanola45.com.ar/api/user/activate/' . $token);
 
             return;
 

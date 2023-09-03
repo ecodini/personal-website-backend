@@ -1,12 +1,10 @@
-<?php namespace Holamanola45\Www\Domain;
+<?php namespace Holamanola45\Www\Entity\User;
 
 use DateTime;
 
-class User {
-    function __construct($array) {
-        foreach($array as $key=>$value) {
-            $this->$key = $value;
-        }
+class UserModel {
+    function __set($key, $value) {
+        $this->$key = $value;
     }
 
     public int $id;
@@ -26,6 +24,4 @@ class User {
     public string $email;
 
     public string $token;
-
-    public $extra_properties;
 }

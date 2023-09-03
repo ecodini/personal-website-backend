@@ -10,8 +10,11 @@ class XMLHelper {
         }
          
         foreach ($array as $k => $v) {
-             
-            if (is_array($v)) {
+            if (is_array($v) || is_object($v)) {
+                if (is_object($v)) {
+                    $v = json_decode(json_encode($v), true);
+                }
+
                 $id = NULL;
 
                 if (is_int($k)) {

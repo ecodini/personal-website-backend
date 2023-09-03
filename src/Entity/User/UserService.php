@@ -1,6 +1,5 @@
 <?php namespace Holamanola45\Www\Entity\User;
 
-use Holamanola45\Www\Domain\User;
 use Holamanola45\Www\Lib\Db\DbConnection;
 use Holamanola45\Www\Lib\Db\DbService;
 
@@ -8,18 +7,30 @@ class UserService extends DbService {
     function __construct() {
         $conn = new DbConnection();
 
-        parent::__construct('user', $conn);
+        parent::__construct('user', $conn, UserModel::class);
     }
 
-    public function findByUsername(string $username, array $attributes): User {
+    public function findByUsername(string $username, array $attributes): UserModel {
         $row = $this->query('
             SELECT ' . implode(', ', $attributes) . ' FROM user
             WHERE username = :name LIMIT 1;
         ', array(
             'name' => $username
-        ));
+        ), $this->class);
 
-        return new User($row[0]);
+        return $row[0];
+    }
+
+    public function findByUsernameOrEmail(string $username, string $email, array $attributes): UserModel {
+        $row = $this->query('
+            SELECT ' . implode(', ', $attributes) . ' FROM user
+            WHERE username = :name OR email = :email LIMIT 1;
+        ', array(
+            'name' => $username,
+            'email' => $email
+        ), $this->class);
+
+        return $row[0];
     }
 
     public function createUser(array $user_data) {

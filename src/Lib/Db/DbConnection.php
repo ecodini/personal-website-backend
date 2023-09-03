@@ -25,12 +25,16 @@ class DbConnection {
         $this->close();
     }
 
-    public function query(string $sql, array $vars = []): array {
+    public function query(string $sql, array $vars = [], $class = NULL): array {
         $statement = $this->conn->prepare($sql);
 
         $statement->execute($vars);
 
-        return $statement->fetchAll(PDO::FETCH_ASSOC);
+        if (isset($class)) {
+            return $statement->fetchAll(PDO::FETCH_CLASS, $class);
+        } else {
+            return $statement->fetchAll(PDO::FETCH_ASSOC);
+        }
     }
 
     public function beginTransaction(): bool {

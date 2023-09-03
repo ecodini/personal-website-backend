@@ -7,17 +7,20 @@ abstract class DbService {
 
     private string $table_name;
 
-    function __construct(string $table_name, DbConnection $db_conn) {
+    public string $class;
+
+    function __construct(string $table_name, DbConnection $db_conn, $class) {
         $this->table_name = $table_name;
         $this->db_conn = $db_conn;
+        $this->class = $class;
     }
 
     function __destruct() {
         $this->db_conn->close();
     }
 
-    public function query(string $sql, array $vars = []): array {
-        return $this->db_conn->query($sql, $vars);
+    public function query(string $sql, array $vars = [], $class = NULL): array {
+        return $this->db_conn->query($sql, $vars, $class);
     }
 
     public function getTotalRows(): int {
@@ -43,12 +46,12 @@ abstract class DbService {
             $rows = $this->query('
                 SELECT ' . $attributes .' FROM ' . $this->table_name . ' ' . $joins['join_statement'] . '
                 WHERE id = :id LIMIT 1;
-            ', array_merge(array('id' => $id), $joins['values']));
+            ', array_merge(array('id' => $id), $joins['values']), $this->class);
         } else {
             $rows = $this->query('
                 SELECT ' . $attributes .' FROM ' . $this->table_name . '
                 WHERE id = :id LIMIT 1;
-            ', array('id' => $id));
+            ', array('id' => $id), $this->class);
         }
 
         if (count($rows) == 0) {
@@ -90,9 +93,9 @@ abstract class DbService {
                 $rows = $rows . ' ' . $order . ' ';
             }
 
-            return $this->query($rows . $limit_offset, $params);
+            return $this->query($rows . $limit_offset, $params, $this->class);
         } else {
-            return $this->query($rows . $limit_offset);
+            return $this->query($rows . $limit_offset, [], $this->class);
         }
     }
 
