@@ -10,7 +10,7 @@ class UserService extends DbService {
         parent::__construct('user', $conn, UserModel::class);
     }
 
-    public function findByUsername(string $username, array $attributes): UserModel {
+    public function findByUsername(string $username, array $attributes): UserModel | null {
         $row = $this->query('
             SELECT ' . implode(', ', $attributes) . ' FROM user
             WHERE username = :name LIMIT 1;
@@ -21,7 +21,7 @@ class UserService extends DbService {
         return $row[0];
     }
 
-    public function findByUsernameOrEmail(string $username, string $email, array $attributes): UserModel {
+    public function findByUsernameOrEmail(string $username, string $email, array $attributes): UserModel | null {
         $row = $this->query('
             SELECT ' . implode(', ', $attributes) . ' FROM user
             WHERE username = :name OR email = :email LIMIT 1;

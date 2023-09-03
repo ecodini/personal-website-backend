@@ -28,6 +28,33 @@ class Router
         return self::on($route, $callback);
     }
 
+    public static function patch($route, $callback)
+    {
+        if (strcasecmp($_SERVER['REQUEST_METHOD'], 'PATCH') !== 0) {
+            return;
+        }
+
+        return self::on($route, $callback);
+    }
+
+    public static function put($route, $callback)
+    {
+        if (strcasecmp($_SERVER['REQUEST_METHOD'], 'PUT') !== 0) {
+            return;
+        }
+
+        return self::on($route, $callback);
+    }
+
+    public static function delete($route, $callback)
+    {
+        if (strcasecmp($_SERVER['REQUEST_METHOD'], 'DELETE') !== 0) {
+            return;
+        }
+
+        return self::on($route, $callback);
+    }
+
     public static function on($regex, $cb_array)
     {
         $params = $_SERVER['REQUEST_URI'];

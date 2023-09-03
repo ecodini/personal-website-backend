@@ -293,4 +293,56 @@ class UserController {
             throw $e;
         }
     }
+
+    public function patchUser(Request $req, Response $res) {
+        try {
+            $this->userService->beginTransaction();
+
+            $user_id = $req->params[0];
+
+            $body = $req->getXML();
+
+            if (
+                isset($body->password) ||
+                isset($body->id) ||
+                isset($body->created_at) ||
+                isset($body->created_by_ip) ||
+                isset($body->last_login_ip) ||
+                isset($body->token) ||
+                isset($body->activate_at)
+            ) {
+                throw new ForbiddenException("Fields provided are not allowed to be edited.");
+            }
+
+            $user = $this->userService->findById($user_id, array(
+                'attributes' => ['id', 'username']
+            ));
+
+            if (!isset($user->id)) {
+                throw new BadRequestException('User does not exist!');
+            }
+
+            if (isset($body->username)) {
+                $user_by_username = $this->userService->findByUsernameOrEmail($body->username, $body->email, ['id']);
+
+                if (isset($user_by_username->id)) {
+                    throw new BadRequestException('The username or email provided is already in use.');
+                }
+            }
+
+            $parsed_body = json_decode(json_encode($body), true);
+
+            $this->userService->update(array(
+                'set' => $parsed_body,
+                'where' => array(
+                    'id' => $user->id
+                )
+            ));
+
+            $this->userService->commit();
+        } catch (Exception $e) {
+            $this->userService->rollback();
+            throw $e;
+        }
+    }
 }

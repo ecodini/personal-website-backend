@@ -34,15 +34,10 @@ class Request
 
     public function getJSON()
     {
-        if ($this->reqMethod !== 'POST') {
-            return [];
-        }
-
         if (strcasecmp($this->contentType, 'application/json') !== 0) {
             return [];
         }
 
-        // Receive the RAW post data.
         $content = trim(file_get_contents("php://input"));
         $decoded = json_decode($content);
 
@@ -50,10 +45,6 @@ class Request
     }
 
     public function getXML() {
-        if ($this->reqMethod !== 'POST') {
-            return [];
-        }
-
         if (strcasecmp($this->contentType, 'application/xml') !== 0) {
             return [];
         }
