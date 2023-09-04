@@ -45,7 +45,7 @@ abstract class DbService {
         if (isset($params)) {
             $rows = $this->query('
                 SELECT ' . $attributes .' FROM ' . $this->table_name . ' ' . $joins['join_statement'] . '
-                WHERE id = :id LIMIT 1;
+                WHERE post.id = :id LIMIT 1;
             ', array_merge(array('id' => $id), $joins['values']), $this->class);
         } else {
             $rows = $this->query('

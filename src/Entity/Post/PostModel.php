@@ -4,7 +4,7 @@ use Holamanola45\Www\Entity\User\UserModel;
 
 class PostModel {
     function __set($key, $value) {
-        $keys_arr = explode('_', $key);
+        $keys_arr = explode('-', $key);
 
         $col = $keys_arr[0];
         $val = $keys_arr[1];
@@ -23,6 +23,18 @@ class PostModel {
     }
 
     public int $id;
+
+    public string $title;
+    
+    public string $content;
+
+    public string $created_at;
+
+    public string $poster_ip;
+
+    public string | null $img_link;
+
+    public int $user_id;
 
     public UserModel $user;
 }

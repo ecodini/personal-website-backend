@@ -100,7 +100,7 @@ class QueryGenerator {
                 return $order;
             }
 
-            if (!preg_match('/^[a-z]+$/', $query_params['order'][0])) {
+            if (!preg_match('/^[a-z.]+$/', $query_params['order'][0])) {
                 return $order;
             }
 
